@@ -1136,6 +1136,14 @@ static int dwc3_probe(struct platform_device *pdev)
 
 	dwc3_check_params(dwc);
 
+	{
+		int usec = 100000;
+
+		do {
+			udelay(1);
+		} while(usec--);
+	}
+
 	ret = dwc3_core_init_mode(dwc);
 	if (ret)
 		goto err5;
