@@ -557,6 +557,10 @@ struct dwc3_event_buffer {
  * @name: a human readable name e.g. ep1out-bulk
  * @direction: true for TX, false for RX
  * @stream_capable: true when streams are enabled
+ * @frame_number_15_14: BIT[15:14] of the frame number to test isochronous
+ *		START TRANSFER command failure workaround
+ * @test0_status: the result of testing START TRANSFER command with
+ *		frame_number_15_14 = 'b00 (non-zero means failure)
  */
 struct dwc3_ep {
 	struct usb_ep		endpoint;
@@ -610,6 +614,10 @@ struct dwc3_ep {
 
 	unsigned		direction:1;
 	unsigned		stream_capable:1;
+
+	/* Isochronous START TRANSFER workaround for STAR 9001202023 */
+	u8			frame_number_15_14;
+	int			test0_status;
 };
 
 enum dwc3_phy {
@@ -864,6 +872,8 @@ struct dwc3_scratchpad_array {
  * @pullups_connected: true when Run/Stop bit is set
  * @setup_packet_pending: true when there's a Setup Packet in FIFO. Workaround
  * @three_stage_setup: set if we perform a three phase setup
+ * @dis_start_transfer_quirk: set if start_transfer failure SW workaround is
+ *			not needed for DWC_usb31 version 1.70a-ea06 and below
  * @usb3_lpm_capable: set if hadrware supports Link Power Management
  * @disable_scramble_quirk: set if we enable the disable scramble quirk
  * @u2exit_lfps_quirk: set if we enable u2exit lfps quirk
@@ -984,10 +994,12 @@ struct dwc3 {
 #define DWC3_REVISION_IS_DWC31		0x80000000
 #define DWC3_USB31_REVISION_110A	(0x3131302a | DWC3_REVISION_IS_DWC31)
 #define DWC3_USB31_REVISION_120A	(0x3132302a | DWC3_REVISION_IS_DWC31)
+#define DWC3_USB31_REVISION_170A	(0x3137302a | DWC3_REVISION_IS_DWC31)
 
 	u32			ver_type;
 
 #define DWC31_VERSIONTYPE_EA01		0x65613031
+#define DWC31_VERSIONTYPE_EA06		0x65613036
 
 	enum dwc3_ep0_next	ep0_next_event;
 	enum dwc3_ep0_state	ep0state;
@@ -1031,6 +1043,7 @@ struct dwc3 {
 	unsigned		pullups_connected:1;
 	unsigned		setup_packet_pending:1;
 	unsigned		three_stage_setup:1;
+	unsigned		dis_start_transfer_quirk:1;
 	unsigned		usb3_lpm_capable:1;
 
 	unsigned		disable_scramble_quirk:1;
