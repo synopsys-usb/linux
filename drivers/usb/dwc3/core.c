@@ -642,6 +642,7 @@ static bool dwc3_core_is_valid(struct dwc3 *dwc)
 {
 	u32 reg;
 
+	dwc->ver_type = 0;
 	reg = dwc3_readl(dwc->regs, DWC3_GSNPSID);
 
 	/* This should read as U3 followed by revision number */
@@ -652,6 +653,7 @@ static bool dwc3_core_is_valid(struct dwc3 *dwc)
 		/* Detected DWC_usb31 IP */
 		dwc->revision = dwc3_readl(dwc->regs, DWC3_VER_NUMBER);
 		dwc->revision |= DWC3_REVISION_IS_DWC31;
+		dwc->ver_type = dwc3_readl(dwc->regs, DWC3_VER_TYPE);
 	} else {
 		return false;
 	}
